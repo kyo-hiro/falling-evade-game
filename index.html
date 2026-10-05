@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>落ち物回避ゲーム - 画像完全対応版</title>
+    <title>落ち物回避ゲーム - Web画像対応版</title>
     <style>
         body {
             margin: 0;
@@ -54,13 +54,18 @@
 
     // --- ⚙️ カスタマイズ設定エリア ---
     const MAX_LIFE = 3;
-    const OBSTACLE_MIN_SIZE = 30;
+    const OBSTACLE_MIN_SIZE = 35;
     const OBSTACLE_MAX_SIZE = 60;
     
-    // 使用する画像ファイル名（同じフォルダに置いてください）
-    const PLAYER_IMAGE_SRC = "player.png"; 
-    const ENEMY_IMAGE_SRCS = ["obs1.png", "obs2.png", "obs3.png"];
-    const HEART_IMAGE_SRC = "heart.png";
+    // 【修正】ネット上のサンプル画像URLに変更（ファイル準備不要！）
+    // ※今後GitHubにアップロードした際は、ここを "player.png" 等に戻せば動きます。
+    const PLAYER_IMAGE_SRC = "https://picsum.photos";  // 可愛い犬の画像（自機）
+    const ENEMY_IMAGE_SRCS = [
+        "https://picsum.photos", // ライオン（敵1）
+        "https://picsum.photos",  // トラ（敵2）
+        "https://picsum.photos"   // コヨーテ（敵3）
+    ];
+    const HEART_IMAGE_SRC = "https://githubusercontent.com"; // 赤いハート（アイテム）
 
     const ITEM_SPAWN_RATE = 0.005; // ハートの出現率
     // ---------------------------------
@@ -73,9 +78,9 @@
     // プレイヤー（自機）のデータ
     const player = {
         x: canvas.width / 2 - 20,
-        y: canvas.height - 50,
-        width: 40,
-        height: 40,
+        y: canvas.height - 55,
+        width: 45,
+        height: 45,
         speed: 8,
         color: "#00FFCC",
         isInvincible: false,
@@ -95,47 +100,46 @@
     // 画像オブジェクトの準備
     const images = {
         player: new Image(),
-        enemies: [],
+        enemies:,
         heart: new Image()
     };
 
     // 画像の総数と読み込み完了カウンター
-    const totalImages = 1 + ENEMY_IMAGE_SRCS.length + 1; // 自機(1) + 敵(3) + ハート(1) = 計5枚
+    const totalImages = 1 + ENEMY_IMAGE_SRCS.length + 1;
     let loadedImagesCount = 0;
 
     // 画像が1枚読み込まれるたびに呼ばれる関数
     function onImageLoad() {
         loadedImagesCount++;
         if (loadedImagesCount === totalImages) {
-            // すべての画像が読み込み終わったらゲームを開始
             initGame();
         }
     }
 
-    // 画像読み込みエラー時の処理
+    // 画像読み込みエラー時の処理（エラーが起きても強制スタート）
     function onImageError(src) {
-        console.error(`画像の読み込みに失敗しました: ${src}`);
-        // エラーが起きてもカウントを進めてゲーム起動を妨げないようにする
+        console.warn(`画像の読み込みに失敗: ${src}`);
         onImageLoad();
     }
 
-    // 画像のプリロード（先読み）処理を実行
+    // 画像のプリロード
     function preloadImages() {
-        // 1. プレイヤー画像
+        // クロスオリジン（セキュリティ対策）の設定を追加
+        images.player.crossOrigin = "anonymous";
         images.player.src = PLAYER_IMAGE_SRC;
         images.player.onload = onImageLoad;
         images.player.onerror = () => onImageError(PLAYER_IMAGE_SRC);
 
-        // 2. 敵画像（複数）
         ENEMY_IMAGE_SRCS.forEach((src) => {
             const img = new Image();
+            img.crossOrigin = "anonymous";
             img.src = src;
             img.onload = onImageLoad;
             img.onerror = () => onImageError(src);
             images.enemies.push(img);
         });
 
-        // 3. ハート画像
+        images.heart.crossOrigin = "anonymous";
         images.heart.src = HEART_IMAGE_SRC;
         images.heart.onload = onImageLoad;
         images.heart.onerror = () => onImageError(HEART_IMAGE_SRC);
@@ -337,15 +341,3 @@
         scoreElement.textContent = score;
         updateLifeDisplay();
         obstacles.length = 0;
-        items.length = 0;
-        player.x = canvas.width / 2 - 20;
-        player.isInvincible = false;
-        gameOver = false;
-    }
-
-    // まず最初に画像の読み込みを開始する
-    preloadImages();
-</script>
-
-</body>
-</html>
